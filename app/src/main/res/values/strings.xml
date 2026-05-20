@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">VeggieLens</string>
+    <string name="scan">蔬菜识别</string>
+    <string name="history">识别历史</string>
+    <string name="result">识别结果</string>
+    <string name="profile">个人中心</string>
+    <string name="icon_scan">识别</string>
+    <string name="icon_history">记录</string>
+    <string name="icon_profile">我的</string>
 </resources>
