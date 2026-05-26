@@ -31,6 +31,6 @@ class VegetableRepository(
     }
 
     suspend fun deleteAllHistory() {
-        scanHistoryDao.deleteAll(
+        scanHistoryDao.deleteAll()
     }
 }
