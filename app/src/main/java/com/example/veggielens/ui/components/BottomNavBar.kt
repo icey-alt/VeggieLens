@@ -21,7 +21,10 @@ fun BottomNavBar(
     onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    NavigationBar(modifier = modifier) {
+    NavigationBar(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background
+    ) {
         bottomNavItems.forEach { item ->
             NavigationBarItem(
                 selected = currentScreen.name == item.route,

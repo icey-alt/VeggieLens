@@ -27,7 +27,7 @@ fun TopNavBar(
     CenterAlignedTopAppBar(
         title = { Text(stringResource(currentScreen.title)) },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.background
         ),
         modifier = modifier,
         navigationIcon = {
