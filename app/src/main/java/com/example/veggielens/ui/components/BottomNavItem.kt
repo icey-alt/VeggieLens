@@ -6,8 +6,8 @@ import com.example.veggielens.R
 import com.example.veggielens.navigation.Screen
 
 data class BottomNavItem(
-    @StringRes val titleResId: Int,
-    @DrawableRes val iconResId: Int,
+    @param:StringRes val titleResId: Int,
+    @param:DrawableRes val iconResId: Int,
     val route: String
 )
 

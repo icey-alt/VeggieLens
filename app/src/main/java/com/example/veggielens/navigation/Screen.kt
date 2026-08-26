@@ -32,10 +32,14 @@ fun VeggieLensApp() {
                 bottomNavItems = NavigationConfig.BottomNavItems,
                 currentScreen = Screen.valueOf(currentRoute),
                 onNavigate = { screen ->
-                    navController.navigate(screen.name) {
-                        popUpTo(Screen.Scan.name) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    if (screen == Screen.Scan && currentRoute == Screen.Result.name) {
+                        navController.popBackStack(Screen.Scan.name, false)
+                    } else {
+                        navController.navigate(screen.name) {
+                            popUpTo(Screen.Scan.name) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 modifier = Modifier

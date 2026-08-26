@@ -21,8 +21,8 @@ fun TopNavBar(
     currentScreen: Screen,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
-    action: @Composable RowScope.() -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    action: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
         title = { Text(stringResource(currentScreen.title)) },

@@ -4,6 +4,7 @@ import com.example.veggielens.data.local.ScanHistoryDao
 import com.example.veggielens.data.local.VegetableDao
 import com.example.veggielens.data.model.ScanHistory
 import com.example.veggielens.data.model.VegetableEntity
+import com.example.veggielens.data.model.getPresetVegetables
 import kotlinx.coroutines.flow.Flow
 
 class VegetableRepository(
@@ -15,7 +16,12 @@ class VegetableRepository(
     }
 
     suspend fun getAllVegetables(): List<VegetableEntity> {
-        return vegetableDao.getAllVegetables()
+        val vegetables = vegetableDao.getAllVegetables()
+        if (vegetables.isNotEmpty()) return vegetables
+
+        val presets = getPresetVegetables()
+        vegetableDao.insertAll(presets)
+        return presets
     }
 
     suspend fun insertScanHistory(history: ScanHistory) {

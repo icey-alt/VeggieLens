@@ -14,7 +14,13 @@ interface ScanHistoryDao {
     @Query("SELECT * FROM scan_history ORDER BY timestamp DESC")
     fun getAllHistory(): Flow<List<ScanHistory>>
 
-    @Query("SELECT * FROM scan_history WHERE vegetableName LIKE '%' || :query || '%' ORDER BY timestamp DESC")
+    @Query("""
+        SELECT h.* FROM scan_history h 
+        INNER JOIN vegetable v ON h.vegetableName = v.name 
+        WHERE h.vegetableName LIKE '%' || :query || '%' 
+           OR v.chineseName LIKE '%' || :query || '%' 
+        ORDER BY h.timestamp DESC
+    """)
     fun searchHistory(query: String): Flow<List<ScanHistory>>
 
     @Query("DELETE FROM scan_history")

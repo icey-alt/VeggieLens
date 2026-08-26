@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.Room
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.veggielens.data.local.ScanHistoryDao
 import com.example.veggielens.data.local.VegetableDao
@@ -37,6 +38,24 @@ abstract class VeggieDatabase : RoomDatabase() {
                 instance
             }
         }
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_scan_history_vegetableName " +
+                            "ON scan_history (vegetableName)"
+                )
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE scan_history " +
+                            "ADD COLUMN descriptionSource TEXT NOT NULL DEFAULT 'LOCAL'"
+                )
+            }
+        }
     }
 
     private class PrepopulateCallback : Callback() {
@@ -50,7 +69,7 @@ abstract class VeggieDatabase : RoomDatabase() {
         }
     }
 }
-private fun getPresetVegetables(): List<VegetableEntity> = listOf(
+internal fun getPresetVegetables(): List<VegetableEntity> = listOf(
     VegetableEntity(
         name = "Bean",
         chineseName = "豆角",
