@@ -1,10 +1,141 @@
 <resources>
     <string name="app_name">VeggieLens</string>
-    <string name="scan">蔬菜识别</string>
-    <string name="history">识别历史</string>
+
+    <!-- 页面标题 / 底部导航 -->
+    <string name="scan">识别蔬菜</string>
+    <string name="history">识别记录</string>
     <string name="result">识别结果</string>
-    <string name="profile">个人中心</string>
+    <string name="profile">我的</string>
+    <string name="guide">蔬菜图鉴</string>
+    <string name="detail">蔬菜详情</string>
     <string name="icon_scan">识别</string>
+    <string name="icon_guide">图鉴</string>
     <string name="icon_history">记录</string>
     <string name="icon_profile">我的</string>
+
+    <!-- 通用 -->
+    <string name="action_cancel">取消</string>
+    <string name="action_save">保存</string>
+    <string name="action_got_it">知道了</string>
+    <string name="unit_times">次</string>
+    <string name="unit_days">天</string>
+
+    <!-- 无障碍描述 -->
+    <string name="cd_back">返回</string>
+    <string name="cd_shutter">拍照识别</string>
+    <string name="cd_gallery">从相册选择图片</string>
+    <string name="cd_flash">闪光灯</string>
+    <string name="cd_clear_search">清除搜索</string>
+    <string name="cd_show_key">显示密钥</string>
+    <string name="cd_hide_key">隐藏密钥</string>
+    <string name="cd_filter_categories">按分类筛选</string>
+    <string name="state_expanded">已展开</string>
+    <string name="state_collapsed">已收起</string>
+    <string name="cd_help">使用帮助</string>
+    <string name="cd_share">分享</string>
+    <string name="cd_start_scan">开始识别</string>
+
+    <!-- 扫描页 -->
+    <string name="scan_auto">自动识别</string>
+    <string name="scan_hint_auto">将蔬菜放入框内，自动识别</string>
+    <string name="scan_hint_manual">将蔬菜放入框内，点击快门</string>
+    <string name="scan_hint_live">像是%1$s，再靠近一点</string>
+    <string name="scan_hint_processing">正在识别…</string>
+    <string name="scan_help_title">怎样拍得更准</string>
+    <string name="scan_help_message">· 光线充足，避免逆光\n· 让蔬菜占满取景框的大部分\n· 一次只拍一种蔬菜，背景尽量简洁\n· 开启“自动识别”后，对准即可自动出结果；关闭后点快门识别</string>
+    <string name="scan_error_read_image">无法读取所选图片，请重新选择</string>
+    <string name="permission_title">需要使用相机</string>
+    <string name="permission_message">拍下蔬菜即可在本机完成识别，照片不会上传。</string>
+    <string name="permission_grant">允许使用相机</string>
+    <string name="permission_open_settings">前往系统设置</string>
+    <string name="permission_pick_gallery">先从相册选一张</string>
+
+    <!-- 结果页 -->
+    <string name="result_confidence_low">不太确定，建议换个角度再拍一次</string>
+    <string name="result_match_badge">匹配 %1$d%%</string>
+    <string name="result_tag_vegetable">蔬菜</string>
+    <string name="result_description_ai">AI 科普</string>
+    <string name="result_description_local">营养介绍</string>
+    <string name="result_nutrition_card_title">营养亮点（每 100 克）</string>
+    <string name="result_share_title">分享识别结果</string>
+    <string name="result_share_text">%1$s（%2$s）· 匹配度 %3$d%%\n每 100 克：热量 %4$s，蛋白质 %5$s，碳水 %6$s，膳食纤维 %7$s\n\n%8$s\n\n—— 来自 VeggieLens</string>
+    <string name="result_alternatives">也可能是</string>
+    <string name="result_expand">展开全文</string>
+    <string name="result_collapse">收起</string>
+    <string name="result_disclaimer_ai">内容由 deepseek-chat 生成，仅作一般营养科普，重要信息请自行核对。</string>
+    <string name="result_disclaimer_local">当前使用离线本地资料，仅作一般营养科普。</string>
+    <string name="result_empty_title">暂无识别结果</string>
+    <string name="result_empty_message">对着蔬菜拍一张照片，这里会显示营养信息和科普介绍。</string>
+    <string name="result_go_scan">去扫描</string>
+    <string name="nutrition_calories_kcal">千卡</string>
+    <string name="nutrition_protein">蛋白质</string>
+    <string name="nutrition_carbs">碳水</string>
+    <string name="nutrition_fiber">膳食纤维</string>
+
+    <!-- 维生素与矿物质 / 选购与烹饪（结果页、图鉴详情页共用） -->
+    <string name="micro_title">维生素与矿物质（每 100 克）</string>
+    <string name="micro_no_data">暂无可靠的维生素与矿物质数据</string>
+    <string name="micro_rich_in">富含%1$s</string>
+    <string name="micro_row_spoken">%1$s %2$s，约占每日参考值的 %3$d%%</string>
+    <string name="micro_source">数值参考 USDA FoodData Central 生食可食部分，为近似值；占比按 GB 28050 营养素参考值（NRV）计算，达到 30 及以上标为“富含”。</string>
+    <string name="nutrient_vitamin_c">维生素 C</string>
+    <string name="nutrient_vitamin_a">维生素 A</string>
+    <string name="nutrient_potassium">钾</string>
+    <string name="nutrient_calcium">钙</string>
+    <string name="nutrient_iron">铁</string>
+    <string name="nutrient_folate">叶酸</string>
+    <string name="tips_title">选购与烹饪</string>
+    <string name="tips_season">时令</string>
+    <string name="tips_selection">挑选</string>
+    <string name="tips_storage">保存</string>
+    <string name="tips_dishes">推荐做法</string>
+
+    <!-- 图鉴 -->
+    <string name="guide_progress">已发现 %1$d / %2$d 种蔬菜</string>
+    <string name="guide_progress_hint">识别出一种新蔬菜，就会点亮它的图鉴卡片</string>
+    <string name="guide_discovered">已发现</string>
+    <string name="guide_undiscovered">未发现</string>
+    <string name="detail_scanned_count">你识别过它 %1$d 次</string>
+    <string name="detail_scanned_latest">最近一次：%1$s · 匹配 %2$d%%</string>
+    <string name="detail_not_scanned">还没识别过它</string>
+    <string name="detail_not_scanned_hint">拍一张照片，点亮这张图鉴卡片</string>
+    <string name="detail_go_scan">去识别</string>
+
+    <!-- 记录页 -->
+    <string name="history_search_hint">搜索蔬菜…</string>
+    <string name="history_today">今天</string>
+    <string name="history_yesterday">昨天</string>
+    <string name="history_empty_title">菜篮子还是空的</string>
+    <string name="history_empty_message">识别过的蔬菜会按日期出现在这里。</string>
+    <string name="history_go_scan">去扫描</string>
+    <string name="history_no_match_title">没有找到匹配的记录</string>
+    <string name="history_no_match_message">换个关键词或分类试试。</string>
+    <string name="history_clear_filters">清除筛选</string>
+
+    <!-- 我的 -->
+    <string name="profile_total_scans">累计识别</string>
+    <string name="profile_open_guide">查看蔬菜图鉴</string>
+    <string name="profile_collection">已发现 %1$d / %2$d 种蔬菜</string>
+    <string name="profile_monthly">本月识别</string>
+    <string name="profile_streak">连续打卡</string>
+    <string name="profile_section_ai">AI 科普</string>
+    <string name="profile_api_key">DeepSeek API 密钥</string>
+    <string name="profile_api_key_on">已配置，识别后生成 AI 科普</string>
+    <string name="profile_api_key_off">未配置，使用本地资料</string>
+    <string name="profile_section_data">数据与关于</string>
+    <string name="profile_clear_history">清除识别记录</string>
+    <string name="profile_clear_history_desc">删除本机保存的全部记录</string>
+    <string name="profile_about">关于 VeggieLens</string>
+    <string name="profile_version">版本 %1$s</string>
+    <string name="profile_privacy_badge">本地识别 · 照片不上传</string>
+    <string name="profile_key_saved">API 密钥已保存</string>
+    <string name="profile_history_cleared">识别记录已清空</string>
+    <string name="profile_key_sheet_title">配置 DeepSeek API 密钥</string>
+    <string name="profile_key_sheet_message">配置后将用 deepseek-chat 生成简短科普；留空或请求失败时使用本地资料。密钥只加密保存在本机，正式产品仍应通过自有服务端代理。</string>
+    <string name="profile_key_label">API 密钥</string>
+    <string name="profile_key_placeholder">sk-…</string>
+    <string name="profile_clear_dialog_title">清除全部识别记录？</string>
+    <string name="profile_clear_dialog_message">该操作会永久删除本机保存的识别记录，无法撤销。</string>
+    <string name="profile_clear_confirm">确认清除</string>
+    <string name="profile_about_message">版本 %1$s\n\nVeggieLens 是一款离线蔬菜识别与营养信息应用。使用 CameraX 与 MediaPipe 在设备本地完成图像分类，Room 保存识别记录。云端科普为可选功能，未配置密钥时不发送请求。\n\n识别和营养内容仅供学习与一般科普，不用于医疗或食品安全判断。</string>
 </resources>

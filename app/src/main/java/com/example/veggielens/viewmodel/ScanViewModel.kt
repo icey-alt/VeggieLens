@@ -35,7 +35,9 @@ sealed class ScanState {
         val vegetable: VegetableEntity,
         val confidence: Int,
         val description: String,
-        val descriptionSource: DescriptionSource
+        val descriptionSource: DescriptionSource,
+        /** 其他可能的结果（不含 vegetable 本身），最多 2 个，供结果页“也可能是”使用 */
+        val alternatives: List<VegetableMatch> = emptyList()
     ) : ScanState()
     data class Error(val message: String) : ScanState()
 }
@@ -51,7 +53,14 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
     val latestResult: StateFlow<ScanState.Success?> = _latestResult
 
-    private var latestBitmap: Bitmap? = null
+    private val _isLoadingResult = MutableStateFlow(false)
+
+    /** 从历史记录打开结果页时，结果正在加载 */
+    val isLoadingResult: StateFlow<Boolean> = _isLoadingResult
+
+    /** 最近一帧相机画面（原始方向）及其旋转角度 */
+    @Volatile
+    private var latestFrame: CameraFrame? = null
 
     private var imageClassifier: ImageClassifier? = null
 
@@ -68,10 +77,16 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
     val isAutoScanEnabled: StateFlow<Boolean> = _isAutoScanEnabled
 
+    /** 自动扫描时画面里“像是”什么蔬菜（中文名），用于取景页的实时提示 */
+    private val _liveHint = MutableStateFlow<String?>(null)
+
+    val liveHint: StateFlow<String?> = _liveHint
+
     private var lastAnalysisTime = 0L
 
     fun toggleAutoScan() {
         _isAutoScanEnabled.value = !_isAutoScanEnabled.value
+        _liveHint.value = null
     }
 
     init {
@@ -86,12 +101,13 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                 val options = ImageClassifierOptions.builder()
                     .setBaseOptions(
                         BaseOptions.builder()
-                            .setModelAssetPath("efficientnet_lite0.tflite")
+                            .setModelAssetPath(RecognitionConfig.MODEL_ASSET)
                             .build()
                     )
                     .setRunningMode(RunningMode.IMAGE)
-                    .setMaxResults(3)
-                    .setScoreThreshold(0.2f)
+                    .setMaxResults(RecognitionConfig.MAX_RESULTS)
+                    // 与“也可能是”的阈值一致，否则低分候选在这里就被过滤掉了
+                    .setScoreThreshold(RecognitionConfig.ALTERNATIVE_MIN_CONFIDENCE / 100f)
                     .build()
                 val classifier = ImageClassifier.createFromOptions(getApplication(), options)
                 imageClassifier =classifier
@@ -105,19 +121,22 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
     val analyzer = ImageAnalysis.Analyzer { imageProxy ->
         try {
-            val bitmap = imageProxy.toBitmap()
-            latestBitmap = bitmap
+            val frame = CameraFrame(
+                bitmap = imageProxy.toBitmap(),
+                rotationDegrees = imageProxy.imageInfo.rotationDegrees
+            )
+            latestFrame = frame
 
             val currentTime = System.currentTimeMillis()
             if (_isAutoScanEnabled.value &&
                 _scanState.value is ScanState.Idle &&
-                currentTime - lastAnalysisTime >= 1200L &&
+                currentTime - lastAnalysisTime >= RecognitionConfig.AUTO_SCAN_INTERVAL_MS &&
                 autoScanInProgress.compareAndSet(false, true)
                 ) {
                 lastAnalysisTime = currentTime
                 viewModelScope.launch(Dispatchers.IO) {
                     try {
-                        performAutoScan(bitmap)
+                        performAutoScan(frame.toModelInput())
                     } finally {
                         autoScanInProgress.set(false)
                     }
@@ -131,12 +150,12 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun triggerScan() {
-        val bitmap = latestBitmap
-        if (bitmap == null) {
+        val frame = latestFrame
+        if (frame == null) {
             _scanState.value = ScanState.Error("未检测到相机画面")
             return
         }
-        processImage(bitmap)
+        processImage(frame.toModelInput())
     }
 
     fun scanFromGallery(bitmap: Bitmap) {
@@ -157,8 +176,9 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                 val results = classifier.classify(mpImage)
 
                 val presetList = repository.getAllVegetables()
+                val candidates = results.toCandidates()
                 val match = VegetableMatcher.findBestMatch(
-                    candidates = results.toCandidates(),
+                    candidates = candidates,
                     vegetables = presetList,
                     minimumConfidence = MANUAL_SCAN_MIN_CONFIDENCE
                 )
@@ -182,7 +202,8 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                         vegetable = matchedVeggie,
                         confidence = match.confidence,
                         description = description.text,
-                        descriptionSource = description.source
+                        descriptionSource = description.source,
+                        alternatives = alternativesFor(candidates, presetList, matchedVeggie)
                     )
                     _latestResult.value = success
                     _scanState.value = success
@@ -198,15 +219,22 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadResultFromHistory(history: ScanHistory) {
+        // 先清空，避免结果页短暂显示上一次的结果
+        _latestResult.value = null
+        _isLoadingResult.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            val vegetable = repository.getVegetableByName(history.vegetableName)
-            if (vegetable != null) {
-                _latestResult.value = ScanState.Success(
-                    vegetable = vegetable,
-                    confidence = history.confidence,
-                    description = history.description.orEmpty(),
-                    descriptionSource = DescriptionSource.fromStorage(history.descriptionSource)
-                )
+            try {
+                val vegetable = repository.getVegetableByName(history.vegetableName)
+                if (vegetable != null) {
+                    _latestResult.value = ScanState.Success(
+                        vegetable = vegetable,
+                        confidence = history.confidence,
+                        description = history.description.orEmpty(),
+                        descriptionSource = DescriptionSource.fromStorage(history.descriptionSource)
+                    )
+                }
+            } finally {
+                _isLoadingResult.value = false
             }
         }
     }
@@ -218,14 +246,19 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
             val result = classifier.classify(mpImage)
 
             val presetList = repository.getAllVegetables()
-            val match = VegetableMatcher.findBestMatch(
-                candidates = result.toCandidates(),
+            val candidates = result.toCandidates()
+            // 候选按分数降序匹配，所以“提示”与“达到自动识别阈值”的结果是同一个蔬菜
+            val hint = VegetableMatcher.findBestMatch(
+                candidates = candidates,
                 vegetables = presetList,
-                minimumConfidence = AUTO_SCAN_MIN_CONFIDENCE
+                minimumConfidence = HINT_MIN_CONFIDENCE
             )
+            _liveHint.value = hint?.vegetable?.chineseName
+            val match = hint?.takeIf { it.confidence >= AUTO_SCAN_MIN_CONFIDENCE }
 
             if (match != null) {
                 _scanState.value = ScanState.Loading
+                _liveHint.value = null
 
                 val matchedVeggie = match.vegetable
                 val description = descriptionProvider.describe(
@@ -245,7 +278,8 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                     vegetable = matchedVeggie,
                     confidence = match.confidence,
                     description = description.text,
-                    descriptionSource = description.source
+                    descriptionSource = description.source,
+                    alternatives = alternativesFor(candidates, presetList, matchedVeggie)
                 )
                 _latestResult.value = success
                 _scanState.value = success
@@ -258,6 +292,35 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     fun resetState() {
         _scanState.value = ScanState.Idle
     }
+
+    /** 结果页点击“也可能是”中的候选：切换为该蔬菜，原结果变为候选之一 */
+    fun selectAlternative(alternative: VegetableMatch) {
+        val current = _latestResult.value ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            val vegetable = alternative.vegetable
+            val description = descriptionProvider.describe(vegetable.name, vegetable.chineseName)
+            val previous = VegetableMatch(current.vegetable, current.confidence)
+            _latestResult.value = ScanState.Success(
+                vegetable = vegetable,
+                confidence = alternative.confidence,
+                description = description.text,
+                descriptionSource = description.source,
+                alternatives = (listOf(previous) + current.alternatives)
+                    .filter { it.vegetable.name != vegetable.name }
+                    .sortedByDescending { it.confidence }
+                    .take(MAX_ALTERNATIVES)
+            )
+        }
+    }
+
+    private fun alternativesFor(
+        candidates: List<ClassificationCandidate>,
+        vegetables: List<VegetableEntity>,
+        chosen: VegetableEntity
+    ): List<VegetableMatch> =
+        VegetableMatcher.findMatches(candidates, vegetables, ALTERNATIVE_MIN_CONFIDENCE)
+            .filter { it.vegetable.name != chosen.name }
+            .take(MAX_ALTERNATIVES)
 
     private suspend fun awaitClassifier(): ImageClassifier? {
         return try {
@@ -281,9 +344,19 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
             ClassificationCandidate(label = it.categoryName(), score = it.score())
         }
 
+    /** 相机帧：原始 Bitmap + CameraX 给出的顺时针旋转角度 */
+    private class CameraFrame(val bitmap: Bitmap, val rotationDegrees: Int)
+
+    /** 转正并裁出取景框区域，作为模型输入 */
+    private fun CameraFrame.toModelInput(): Bitmap =
+        FramePreprocessor.uprightCenterCrop(bitmap, rotationDegrees, RecognitionConfig.CAMERA_CROP_FRACTION)
+
     private companion object {
         const val TAG = "ScanViewModel"
-        const val MANUAL_SCAN_MIN_CONFIDENCE = 40
-        const val AUTO_SCAN_MIN_CONFIDENCE = 70
+        const val MANUAL_SCAN_MIN_CONFIDENCE = RecognitionConfig.MANUAL_SCAN_MIN_CONFIDENCE
+        const val AUTO_SCAN_MIN_CONFIDENCE = RecognitionConfig.AUTO_SCAN_MIN_CONFIDENCE
+        const val HINT_MIN_CONFIDENCE = RecognitionConfig.HINT_MIN_CONFIDENCE
+        const val ALTERNATIVE_MIN_CONFIDENCE = RecognitionConfig.ALTERNATIVE_MIN_CONFIDENCE
+        const val MAX_ALTERNATIVES = RecognitionConfig.MAX_RESULTS - 1
     }
 }

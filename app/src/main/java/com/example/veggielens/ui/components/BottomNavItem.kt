@@ -1,20 +1,28 @@
 package com.example.veggielens.ui.components
 
-import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.CenterFocusWeak
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.veggielens.R
 import com.example.veggielens.navigation.Screen
 
 data class BottomNavItem(
-    @param:StringRes val titleResId: Int,
-    @param:DrawableRes val iconResId: Int,
-    val route: String
+    val screen: Screen,
+    @param:StringRes val labelRes: Int,
+    val icon: ImageVector,
+    val selectedIcon: ImageVector = icon,
 )
 
+/** 线性图标，选中态只改颜色（与参考设计一致）。 */
 object NavigationConfig {
     val BottomNavItems = listOf(
-        BottomNavItem(titleResId = R.string.icon_scan, iconResId = R.drawable.icon_scan, route = Screen.Scan.name),
-        BottomNavItem(titleResId = R.string.icon_history , iconResId = R.drawable.icon_history , route = Screen.History.name),
-        BottomNavItem(titleResId = R.string.icon_profile , iconResId = R.drawable.icon_profile, route = Screen.Profile.name),
+        BottomNavItem(Screen.Scan, R.string.icon_scan, Icons.Outlined.CenterFocusWeak),
+        BottomNavItem(Screen.Guide, R.string.icon_guide, Icons.AutoMirrored.Outlined.MenuBook),
+        BottomNavItem(Screen.History, R.string.icon_history, Icons.Outlined.Schedule),
+        BottomNavItem(Screen.Profile, R.string.icon_profile, Icons.Outlined.Person),
     )
 }

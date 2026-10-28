@@ -5,6 +5,24 @@ object VegetableCatalog {
 
     val categories = listOf(ALL_CATEGORY, "十字花科", "茄科", "瓜类", "葱蒜类", "叶菜类", "其他")
 
+    /**
+     * 多选分类筛选：空集合表示“全部”。
+     * 点“全部”清空选择；点其他分类在选中/取消之间切换；全部具体分类都被选中时归为“全部”。
+     */
+    fun toggleCategory(selected: Set<String>, category: String): Set<String> {
+        if (category == ALL_CATEGORY) return emptySet()
+        val next = if (category in selected) selected - category else selected + category
+        return if (next.size == categories.size - 1) emptySet() else next
+    }
+
+    /** 某个分类 Chip 是否处于选中状态。 */
+    fun isCategorySelected(selected: Set<String>, category: String): Boolean =
+        if (category == ALL_CATEGORY) selected.isEmpty() else category in selected
+
+    /** 蔬菜是否满足当前多选分类筛选。 */
+    fun matchesCategories(selected: Set<String>, vegetableName: String): Boolean =
+        selected.isEmpty() || category(vegetableName) in selected
+
     private val chineseNames = mapOf(
         "bean" to "豆角",
         "bitter gourd" to "苦瓜",

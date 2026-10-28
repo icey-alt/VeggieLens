@@ -1,6 +1,7 @@
 package com.example.veggielens.viewmodel
 
 import com.example.veggielens.data.model.ScanHistory
+import com.example.veggielens.data.model.VegetableCatalog
 import java.util.TimeZone
 import java.util.Calendar
 
@@ -20,7 +21,7 @@ object ProfileStatsCalculator {
 
         return ProfileStats(
             totalScans = history.size,
-            uniqueVegetables = history.map { it.vegetableName.lowercase() }.distinct().size,
+            uniqueVegetables = history.map { VegetableCatalog.chineseName(it.vegetableName) }.distinct().size,
             monthlyScans = monthlyScans,
             streakDays = calculateStreak(history, current, timeZone)
         )
