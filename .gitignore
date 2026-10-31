@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# 模型训练：数据集和产物不进 git（见 ml/README.md）
+/ml/datasets/
+/ml/veggielens_export/
+.ipynb_checkpoints/

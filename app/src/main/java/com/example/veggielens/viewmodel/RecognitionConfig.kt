@@ -9,7 +9,7 @@ package com.example.veggielens.viewmodel
  */
 object RecognitionConfig {
     /** assets 里的模型文件名 */
-    const val MODEL_ASSET = "veggielens_classifier_v1.tflite"
+    const val MODEL_ASSET = "veggielens_classifier_v2.tflite"
 
     /** 模型最多返回几个候选（主结果 + “也可能是”） */
     const val MAX_RESULTS = 3
